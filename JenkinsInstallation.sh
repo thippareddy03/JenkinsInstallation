@@ -1,3 +1,4 @@
+#!/bin/bash
 ###################################
 # NAME : V.THIPPAREDDY
 # DATE : 20-06/2024
@@ -8,7 +9,7 @@
 # Arrays are used to write multiple strings in the same variable synta is ARRAY = (name,thippa,reddy)
 ###############################################
 
-function Wget_Download {
+Wget_Download() {
     echo "Checking if Wget is available or not"
     wget --version
         if [ $? -eq 0 ];
@@ -51,52 +52,50 @@ function Wget_Download {
         fi
 }
 
-function JavaPackage_Download {
-    echo "Checking if Java is available or not"
+JavaPackage_Download() {
+    echo "Checking if Java package is available or not"
     java --version
-        if [ $? -eq 0 ];
+    if [ $? -eq 0 ];
+    then
+        echo "Java package is already available"
+        echo "Downloading Jenkins package"
+        Jenkins_Installation
+    else
+        echo "Downloading Java package"
+        if [ "$(grep -Ei 'centos|redhat' /etc/*release)" ];
         then
-            echo "Java package is already available"
-            echo "Calling Jenkins installation function"
-            Jenkins_Installation
+            echo "Downloading Java package for redhat instance"
+            sudo yum install java-11-openjdk -y
+            if [ $? -eq 0 ];
+            then
+                echo "Downloaded Java package for Redhat OS"
+                echo "Downloading Jenkins for Redhat OS"
+                Jenkins_Installation
+            else
+                echo "Unable to download Java package for Redhat OS"
+                exit 1
+            fi
+        elif [ "$(grep -Ei 'debian|ubuntu|mint' /etc/*-release)" ];
+        then
+            echo "Downloading Java Package for Ubuntu OS"
+            sudo apt install openjdk-11-jdk -y
+            if [ $? -eq 0 ];
+            then
+                echo "Downloaded Java package for Ubuntu OS"
+                echo "Downloading Jenkins package for Ubuntu OS"
+                Jenkins_Installation
+            else
+                echo "Unable to download java package for Ubuntu OS"
+                exit 1
+            fi
         else
-            echo "Installing java"
-                if [ "$(grep -Ei 'debian|ubuntu|mint' /etc/*-release)" ];
-                then
-                    echo "Installing Jdk 11 on Ubuntu OS"
-                    sudo apt update -y
-                    sudo apt install openjdk-11-jdk -y
-                        if [ $? -eq 0 ];
-                        then
-                            echo "Java installed successfully"
-                            echo "Calling function to download Jenkins "
-                            Jenkins_Installation
-                        else
-                            echo "Unable to download Java"
-                            exit 1
-                        fi
-                elif [ "$(grep -Ei 'centos|redhat' /etc/*release)" ];
-                then
-                    echo "Installing Jdk 11 on RHEL OS"
-                    sudo apt update -y
-                    sudo yum install java-11-openjdk-devel -y
-                        if [ $? -eq 0 ];
-                        then
-                            echo "Java installed successfully"
-                            echo "Calling function to download jenkins"
-                            Jenkins_Installation
-                        else
-                            echo "Unable to download Java"
-                            exit 1
-                        fi
-                else
-                    echo "Unsupported OS"
-                    exit 1
-                fi
+            echo "Unsupported OS"
+            exit 1
         fi
+    fi
 }
 
-function Jenkins_Installation {
+Jenkins_Installation() {
     echo "Checking if Jenkins version is available or not"
     if [ "$(grep -Ei 'debian|ubuntu|mint' /etc/*-release)" ];
     then
